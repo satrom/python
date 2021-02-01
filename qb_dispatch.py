@@ -15,9 +15,10 @@ import subprocess
 import argparse
 import logging
 
-episodes_linkdir = "/tank/MediaData/episodes/link"
-episodes_rawdir = "/tank/MediaData/episodes/raw"
-films_linkdir = "/tank/MediaData/films/link"
+episodes_linkdir = "/volume1/MediaData/episodes/link"
+episodes_rawdir = "/volume1/MediaData/episodes/raw"
+films_linkdir = "/volume1/MediaData/films/link"
+films_rawdir = "/volume1/MediaData/films/raw"
 logpath = "/root/scripts/qb_dispatch.log"
 
 def is_video_or_subtitle(fname):
