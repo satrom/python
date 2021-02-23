@@ -21,7 +21,7 @@ import logging
 # (btw, if there is no python in docker, then we can not use this script directly)
 episodes_linkdir = "/volume1/MediaData/episodes/link"
 films_linkdir    = "/volume1/MediaData/films/link"
-logpath = "/volume1/docker/qb_dispatch/qb_dispatch.log"
+logpath = "/root/scripts/qb_dispatch.log"
 
 country_codes = ["CEE", "CAN", "CHN", "ESP", "EUR", "FRA", "GBR", "GER", "HKG", "IND", "ITA", "JPN", "KOR", "NOR", "NLD", "POL", "RUS", "TWN", "USA"]
 cut_types = { 'cc': 'CC', 'criterion': 'CC', 'director': 'Directors Cut', 'extended': 'Extended Cut', 'uncut': 'UNCUT', 'remastered': 'Remastered', 'repack': 'Repack'}
