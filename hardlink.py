@@ -6,14 +6,10 @@ import time
 
 '''
 创建硬链接
-
 不能跨盘创建硬链接
-
 请认真确认信息
 请认真确认信息
 请认真确认信息
-
-
 使用方法:
     python hardlink.py -s 源路径 -d 目标路径
 '''
@@ -58,3 +54,24 @@ def hardlink(src_path, desc_path):
             print("创建目录: {}".format(dir_or_file_path))
             mkdir(desc_dir_or_file_path)
             hardlink(dir_or_file_path, desc_dir_or_file_path)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='hard link')
+    parser.add_argument('-s', help='src path')
+    parser.add_argument('-d', help='desc path')
+    args = parser.parse_args()
+
+    src = args.s
+    desc = args.d
+    if src and desc:
+        confirm = "1"
+        if confirm == "1":
+            print("5秒钟后开始")
+            time.sleep(5)
+            hardlink(src, desc)
+            print("硬链接完成")
+        else:
+            print("取消操作, 退出")
+    else:
+        print("缺少参数 -s 或 -d")
