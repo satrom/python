@@ -16,18 +16,6 @@ import time
 
 使用方法:
     python hardlink.py -s 源路径 -d 目标路径
-    cd /volume1/影视云/python
-	cd /volume2/影视库/python
-例子
-    python hardlink.py -s /volume1/影视云/动漫 -d /volume1/影视云/link/Anime
-	python hardlink.py -s /volume1/影视云/电视 -d /volume1/影视云/link/Tv
-	python hardlink.py -s /volume1/影视云/综艺 -d /volume1/影视云/link/Show
-	python hardlink.py -s /volume1/影视云/限级 -d /volume1/影视云/link/Level
-	python hardlink.py -s /volume1/影视云/幼儿教学 -d /volume1/影视云/link/Children
-    python hardlink.py -s /volume1/影视云/电影 -d /volume1/影视云/link/Movie
-    python hardlink.py -s /volume2/影视库/电影 -d /volume2/影视库/link/Movie 
-    python hardlink.py -s /volume1/影视云/记录片 -d /volume1/影视云/link/Film
-	python hardlink.py -s /volume2/影视库/记录片 -d /volume2/影视库/link/Film
 '''
 
 is_dir = os.path.isdir
