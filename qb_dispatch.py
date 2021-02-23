@@ -6,8 +6,10 @@
 
 # Usage: download this python script, setup in qbittorrent
 # Option -> Download -> Run external program on torrent completion
-# set as /root/scripts/qb_dispatch.py -f "%F" -c "%L" -n "%N" 
+# set as /volume1/docker/qb_dispatch/qb_dispatch.py -f "%F" -c "%L" -n "%N"
 # Set categories "episodes" and "films", choose them when add torrent
+
+# 2021-02-02 add country_codes and cut_types, code clean
 
 import re
 import os
@@ -15,11 +17,14 @@ import subprocess
 import argparse
 import logging
 
+# Note: pay attention to path if your are using qbittorrent in docker
+# (btw, if there is no python in docker, then we can not use this script directly)
 episodes_linkdir = "/volume1/MediaData/episodes/link"
-episodes_rawdir = "/volume1/MediaData/episodes/raw"
-films_linkdir = "/volume1/MediaData/films/link"
-films_rawdir = "/volume1/MediaData/films/raw"
-logpath = "/root/scripts/qb_dispatch.log"
+films_linkdir    = "/volume1/MediaData/films/link"
+logpath = "/volume1/docker/qb_dispatch/qb_dispatch.log"
+
+country_codes = ["CEE", "CAN", "CHN", "ESP", "EUR", "FRA", "GBR", "GER", "HKG", "IND", "ITA", "JPN", "KOR", "NOR", "NLD", "POL", "RUS", "TWN", "USA"]
+cut_types = { 'cc': 'CC', 'criterion': 'CC', 'director': 'Directors Cut', 'extended': 'Extended Cut', 'uncut': 'UNCUT', 'remastered': 'Remastered', 'repack': 'Repack'}
 
 def is_video_or_subtitle(fname):
     video_suffix = ["mp4", "mkv", "avi", "wmv", "m2ts", "rmvb", "srt", "ass"]
@@ -29,17 +34,15 @@ def is_video_or_subtitle(fname):
             return True
     return False
 
-def link_episodes(fullname, shortname, do):
-    logging.info(f"'{fullname}' => '{shortname}'")
-    if not shortname:
+def link_episodes(spath, target, do):
+    fullname = os.path.basename(spath)
+    logging.info(f"'{fullname}' => '{target}'")
+    if not target:
         if do:
             logging.error(f"episodes: no short name on '{fullname}', check!")
         return
-    source = fullname
-    target = shortname
     if do and not os.path.exists(os.path.join(episodes_linkdir, target)):
         os.makedirs(os.path.join(episodes_linkdir, target))
-    spath = os.path.join(episodes_rawdir, source)
     if os.path.isdir(spath):
         for root, dirs, files in os.walk(spath):
             vfiles = [f for f in files if is_video_or_subtitle(f)]
@@ -91,31 +94,35 @@ def getname_episodes(fullname):
 
 def dispatch_episodes(path):
     fname = os.path.basename(path)
-    link_episodes(fname, getname_episodes(fname), True)
+    link_episodes(path, getname_episodes(fname), True)
 
 def removeChinese(context):
     filtrate = re.compile(u'[\u4E00-\u9FA5]') # non-Chinese unicode range
     context = filtrate.sub(r'', context) # remove all non-Chinese characters
     return context
 
-def link_(vf, root):
+def link_film(vf, root):
     vf_en = removeChinese(os.path.basename(vf))
     m = re.match(r"\.?([a-z,A-Z,0-9,.]+)\.(\d{4})+.*(720[pP]|1080[pP]|2160[pP])+.*(mkv|mp4|m2ts|srt|ass)+", vf_en)
     # TODO: deal with extra videos
     if "EXTRA" in vf_en or "FEATURETTE" in vf_en or "Sample" in vf_en or "sample" in vf_en:
         return
     cut = ""
-    # check CC GER GBR
-    for ver in  ["CC", "GBR", "GER"]:
-        if ver in vf_en:
-            cut = ver
+    country = ""
+    # check FIFA country code
+    for code in  country_codes:
+        if code in vf_en:
+            country = code
             break
-    if "Director" in vf_en or "DC" in vf_en:
-        cut = "Directors Cut"
-    elif "Extended" in vf_en or "EXTENDED" in vf_en:
-        # when Extended and DC come together, use DC
-        cut = "Extended Cut"
+    vf_en_lower = vf_en.lower()
+    for key, val in cut_types.items():
+        if key in vf_en_lower:
+            cut = val
+            break
+    # Normally, there should be either country or cut
+    cut = country + cut
     if m is None:
+        # sometimes there is no resolution in filename, maybe the uploader missed it
         m = re.match(r"([a-z,A-Z,0-9]+.*).(\d{4})+.*(mkv|mp4|m2ts|srt|ass)+", vf_en)
         name, year, reso, suffix = m[1], m[2], "1080p", m[4]
         if "AKA" in m[1]:
@@ -126,7 +133,6 @@ def link_(vf, root):
         name, year, reso, suffix = m[1], m[2], m[3].lower(), m[4]
         if "AKA" in m[1]:
             name = re.match(r"(\w+)\.AKA.*", m[1])[1]
-        # fname = '.'.join(name.replace('.', ' '), year, reso, suffix)
         fname = f"{name.replace('.', ' ')} ({year}) - [{cut if cut else reso}].{suffix}"
 
     vf_dir = os.path.join(films_linkdir, f"{name.replace('.', ' ')} ({year})")
@@ -165,7 +171,8 @@ if __name__ == '__main__':
                         format='%(asctime)-15s %(levelname)s %(message)s',
                         level=logging.INFO)
     args = parser.parse_args()
+    ifile = args.file.replace('data', 'volume1/MediaData')
     if args.category == "episodes":
-        dispatch_episodes(args.file)
+        dispatch_episodes(ifile)
     if args.category == "films":
-        dispatch_films(args.file)
+        dispatch_films(ifile)
